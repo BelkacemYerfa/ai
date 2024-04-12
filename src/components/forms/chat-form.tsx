@@ -12,12 +12,17 @@ import { useTransition } from "react";
 import { Icons } from "../icons";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
+import { updateChatId , createChat } from "@/_actions/chat";
+import { useUser } from "@clerk/nextjs";
+import { Username } from "@prisma/client";
+import { useRouter } from "next/navigation";
 
 
 export const ChatForm = ()=>{
-
+  const {user} = useUser()
+  const router = useRouter()
   const [isPending , startTransition] = useTransition();
-  const chatId = useParams()
+  const params = useParams()
   const form = useForm<chatSchemaType>({
     resolver : zodResolver(chatSchema),
     defaultValues : {
@@ -25,9 +30,31 @@ export const ChatForm = ()=>{
     }
   })
 
-  const onSubmit = (data : chatSchemaType)=>{
-    startTransition(()=>{
-      console.log(data)
+  const onSubmit =  (data : chatSchemaType)=>{
+    startTransition(async ()=>{
+      try {
+        if(params.id) {
+         await updateChatId({
+            username : Username.HUMAN,
+            id : params.id as string,
+            messages : [data.chat],
+            userId : user?.id as string
+          })
+          router.refresh()
+        } else {
+          const newChat = await createChat({
+            username : Username.HUMAN,
+            name : "Chat",
+            messages : [data.chat],
+            userId : user?.id as string
+          })
+          router.push(`/chat/${newChat.id}`)
+          router.refresh()
+        }
+        form.reset()
+      } catch (error) {
+        toast.error("Something went wrong")
+      }
     })
   }
   return (

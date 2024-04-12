@@ -2,6 +2,9 @@ import { Sidebar } from "@/components/layouts/sidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatForm } from "@/components/forms/chat-form";
 import { Chat } from "@/components/chat";
+import { Suspense } from "react";
+import { currentUser } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
 
 type ChatIdProps = {
   params : {
@@ -9,48 +12,18 @@ type ChatIdProps = {
   }
 }
 
-const Chats = [{
-  id : "1",
-  message : "hello i'm a bot",
-  username : "bot"
-} ,{
-  id : "2",
-  message : "hello i'm a bob the human",
-  username : "Bob2523"
-} ,{
-  id : "2",
-  message : "hello i'm a bob the human",
-  username : "Bob2523"
-} ,{
-  id : "2",
-  message : "hello i'm a bob the human",
-  username : "Bob2523"
-},{
-  id : "2",
-  message : "hello i'm a bob the human",
-  username : "Bob2523"
-},{
-  id : "2",
-  message : "hello i'm a bob the human",
-  username : "Bob2523"
-},{
-  id : "2",
-  message : "hello i'm a bob the human",
-  username : "Bob2523"
-},{
-  id : "2",
-  message : "hello i'm a bob the human",
-  username : "Bob2523"
-}]
 
-export default function ChatIdPage({params} : ChatIdProps) {
-  console.log(params.id)
+export default async function ChatIdPage({params} : ChatIdProps) {
+  const user = await currentUser()
+  if(!user) redirect("/sign-in")
   return (
     <main className="relative w-full flex-1 flex flex-col ">
       <div className="relative flex flex-1 h-full overflow-auto max-h-full flex-col">
         <ScrollArea className="flex-1 h-full  " >
           <div className="flex-1 w-full h-full" >
-            <Chat chats={Chats} />
+            <Suspense fallback={<div className="flex items-center justify-center" >Loading ...</div>} >
+              <Chat chatId={params.id} />
+            </Suspense>
           </div>
         </ScrollArea>
       </div>

@@ -1,0 +1,29 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Chat {
+  id       String  @id @default(cuid())
+  name    String
+  messages Message[]
+  userId   String
+}
+
+enum Username {
+  BOT
+  HUMAN
+}
+
+model Message {
+  id      String @id @default(cuid())
+  username Username
+  content String
+  chatId  String
+  chat    Chat   @relation(fields: [chatId], references: [id])
+}
