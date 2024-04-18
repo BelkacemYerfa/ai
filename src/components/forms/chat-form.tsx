@@ -16,7 +16,10 @@ import { updateChatId , createChat } from "@/_actions/chat";
 import { useUser } from "@clerk/nextjs";
 import { Username } from "@prisma/client";
 import { useRouter } from "next/navigation";
+import { parseInput } from "@/lib/input-formatter";
+import axios from "axios"
 
+const URL = "http://127.0.0.1:8000/"
 
 export const ChatForm = ()=>{
   const {user} = useUser()
@@ -40,6 +43,23 @@ export const ChatForm = ()=>{
             messages : [data.chat],
             userId : user?.id as string
           })
+          const message = parseInput(data.chat)
+          const res = await fetch(URL , {
+            method : "POST",
+            headers : {
+              "Content-Type" :"application/json",
+              "X-CSRFToken" : "0KGGnjP94sGorvdmvmbtpQNDaPOz8SJc"
+            },
+            body : JSON.stringify(message)
+          }).then((res)=>res.json())
+          if(res.message) {
+            await updateChatId({
+              username : Username.BOT,
+              id : params.id as string,
+              messages : [res.message],
+              userId : user?.id as string
+            })
+          }
           router.refresh()
         } else {
           const newChat = await createChat({
@@ -48,6 +68,23 @@ export const ChatForm = ()=>{
             messages : [data.chat],
             userId : user?.id as string
           })
+          const message = parseInput(data.chat)
+          const res = await fetch(URL , {
+            method : "POST",
+            headers : {
+              "Content-Type" :"application/json",
+              "X-CSRFToken" : "0KGGnjP94sGorvdmvmbtpQNDaPOz8SJc"
+            },
+            body : JSON.stringify(message)
+          }).then((res)=>res.json())
+          if(res.message) {
+            await updateChatId({
+              username : Username.BOT,
+              id : newChat.id as string,
+              messages : [res.message],
+              userId : user?.id as string
+            })
+          }
           router.push(`/chat/${newChat.id}`)
           router.refresh()
         }
